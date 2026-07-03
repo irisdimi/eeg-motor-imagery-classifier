@@ -71,4 +71,4 @@ eeg-motor-imagery-classifier/
 
 ## Author
 
-Aya Banna, Second Year Biomedical Engineering (Honours), University of Sydney
+Aya Banna - Second Year Biomedical Engineering (Honours), University of Sydney
