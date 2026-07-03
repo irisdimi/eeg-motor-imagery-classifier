@@ -1,0 +1,155 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{float}
+
+\begin{document}
+
+\title{EEG-Based Classification of Imagined Left vs.\ Right Hand Movement: A CSP + LDA Motor Imagery Pipeline}
+
+\author{
+\IEEEauthorblockN{Aya}
+\IEEEauthorblockA{Biomedical Engineering (Bionics \& Bioelectronics) \\
+University of Sydney \\
+Sydney, Australia}
+}
+
+\maketitle
+
+\begin{abstract}
+This report presents a brain--computer interface (BCI) pipeline that classifies imagined left- versus right-hand movement from single-subject electroencephalography (EEG) recordings. Using the PhysioNet EEG Motor Movement/Imagery Dataset, EEG signals were bandpass filtered to the mu/beta band (8--30\,Hz), decomposed into discriminative spatial components using Common Spatial Patterns (CSP), and classified with Linear Discriminant Analysis (LDA). Ten-fold cross-validation on a single subject (Subject 1) yielded a mean classification accuracy of 62.2\%, exceeding the 50\% chance level for a binary task. Spatial CSP patterns show activity concentrated over central electrodes, consistent with the expected location of the sensorimotor cortex. These results demonstrate that a simple, well-established BCI pipeline can extract a genuine, if modest, motor imagery signal from noisy scalp EEG.
+\end{abstract}
+
+\begin{IEEEkeywords}
+brain--computer interface, EEG, motor imagery, Common Spatial Patterns, Linear Discriminant Analysis
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Motor imagery -- the mental rehearsal of a movement without physically performing it -- produces measurable changes in sensorimotor cortex activity, primarily manifesting as event-related desynchronisation in the mu (8--12\,Hz) and beta (13--30\,Hz) EEG frequency bands \cite{pfurtscheller1999}. This phenomenon underpins a major class of brain--computer interfaces (BCIs), in which imagined movements are decoded from EEG and used to drive an external device, such as a prosthetic limb or communication interface.
+
+This project implements a minimal, well-established motor imagery classification pipeline -- Common Spatial Patterns (CSP) feature extraction combined with a Linear Discriminant Analysis (LDA) classifier -- as a foundational exercise in EEG signal processing and BCI methodology. The aim was not to achieve state-of-the-art performance, but to build, from raw EEG data, a complete and correctly validated pipeline, and to critically evaluate its output.
+
+\section{Methods}
+
+\subsection{Dataset}
+
+Data were drawn from the PhysioNet EEG Motor Movement/Imagery Dataset \cite{schalk2004}, a public dataset of 64-channel EEG recordings collected using the BCI2000 system at a sampling rate of 160\,Hz. Subject 1's imagined-movement runs (runs 4, 8, and 12) were used, in which the subject was cued to imagine opening and closing either their left or right fist. Each run contains multiple trials, each cued with an on-screen target and labelled accordingly (\texttt{T1} = imagined left fist, \texttt{T2} = imagined right fist). Rest trials (\texttt{T0}) were excluded, leaving a binary classification problem.
+
+\subsection{Preprocessing}
+
+The continuous EEG recording was bandpass filtered to 8--30\,Hz using a zero-phase FIR filter (Hamming window, firwin design), isolating the mu and beta bands in which motor imagery signals are most prominent. The continuous recording was then segmented into epochs time-locked to each cue, spanning $-1$ to $+4$ seconds relative to cue onset, yielding one labelled epoch per trial.
+
+\subsection{Feature Extraction: Common Spatial Patterns}
+
+Common Spatial Patterns (CSP) \cite{ramoser2000} was used to extract discriminative spatial features. CSP identifies linear combinations of EEG channels (spatial filters) that maximise the variance of one class while minimising the variance of the other, making it well suited to two-class motor imagery problems where the discriminative information lies in the spatial distribution of band power. Four CSP components were retained per trial, log-transformed to approximate a normal distribution before classification.
+
+\subsection{Classification and Validation}
+
+A Linear Discriminant Analysis (LDA) classifier was trained on the CSP features. CSP and LDA were chained into a single \texttt{scikit-learn} pipeline, ensuring CSP filters were fit only on training data within each cross-validation fold, avoiding information leakage from test trials. Performance was evaluated using 10 random train/test splits (\texttt{ShuffleSplit}, 80\%/20\% split), with mean classification accuracy reported alongside the per-split distribution to characterise variability. A separate stratified 5-fold cross-validation was used to generate an aggregated confusion matrix, ensuring every trial contributed exactly one held-out prediction.
+
+\subsection{Implementation}
+
+The pipeline was implemented in Python using \texttt{MNE-Python} \cite{gramfort2013} for EEG data handling, filtering, and epoching, and \texttt{scikit-learn} for CSP, LDA, and cross-validation. Code is organised into modular stages (data loading, preprocessing, feature extraction, classification) and is available on GitHub.\footnote{\url{https://github.com/YOUR-USERNAME/eeg-motor-imagery-classifier}}
+
+\section{Results}
+
+\subsection{Signal Preprocessing}
+
+Fig.~\ref{fig:raw_filtered} shows a 5-second segment of raw EEG from channel C3 before and after bandpass filtering. The unfiltered signal exhibits slow drift and broadband noise; after filtering, the signal is visibly more oscillatory and confined to the target frequency range.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/01_raw_vs_filtered.png}
+    \caption{Raw (top) versus filtered (bottom, 8--30\,Hz bandpass) EEG signal from channel C3, first 5 seconds of recording.}
+    \label{fig:raw_filtered}
+\end{figure}
+
+Fig.~\ref{fig:psd} shows the power spectral density (PSD) across all channels. A clear rise in power is visible from approximately 7--8\,Hz, sustained through to roughly 35\,Hz, supporting the choice of the 8--30\,Hz passband for isolating motor-imagery-relevant activity.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/02_psd.png}
+    \caption{Power spectral density (PSD) across all 64 EEG channels, prior to epoching.}
+    \label{fig:psd}
+\end{figure}
+
+\subsection{CSP Spatial Patterns}
+
+Fig.~\ref{fig:csp} shows the spatial topography of the four retained CSP components. Components CSP1--CSP3 show activity concentrated over central and centro-parietal regions, broadly consistent with the expected location of the sensorimotor cortex, which supports the pipeline capturing physiologically plausible signal rather than artefact.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/03_csp_patterns.png}
+    \caption{Spatial patterns of the four retained CSP components. Warmer colours indicate stronger positive spatial weighting, cooler colours stronger negative weighting.}
+    \label{fig:csp}
+\end{figure*}
+
+\subsection{Classification Performance}
+
+Table~\ref{tab:results} and Fig.~\ref{fig:accuracy} summarise classification performance across 10 cross-validation splits. Mean accuracy was 62.2\% (chance level: 50\%), with per-split accuracy ranging from 33.3\% to 77.8\%.
+
+\begin{table}[H]
+    \centering
+    \caption{Cross-validated classification accuracy across 10 splits.}
+    \label{tab:results}
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        Metric & Value \\
+        \midrule
+        Mean accuracy & 0.622 \\
+        Minimum split accuracy & 0.333 \\
+        Maximum split accuracy & 0.778 \\
+        Chance level & 0.500 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/04_accuracy_per_split.png}
+    \caption{Classification accuracy for each of the 10 cross-validation splits, relative to the mean (dashed) and chance level (dotted).}
+    \label{fig:accuracy}
+\end{figure}
+
+Fig.~\ref{fig:confusion} shows the aggregated confusion matrix across 5-fold stratified cross-validation. Of 23 true left-imagery trials, 14 (60.9\%) were correctly classified; of 22 true right-imagery trials, 16 (72.7\%) were correctly classified, suggesting a modest asymmetry in classifier sensitivity between the two classes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/05_confusion_matrix.png}
+    \caption{Aggregated confusion matrix (5-fold stratified cross-validation).}
+    \label{fig:confusion}
+\end{figure}
+
+\section{Discussion}
+
+The pipeline achieved a mean classification accuracy of 62.2\%, meaningfully above the 50\% chance level expected for a balanced binary classification task. This indicates that the CSP+LDA pipeline successfully extracted a genuine, if modest, motor-imagery-related signal from single-subject EEG. The spatial distribution of the leading CSP components, concentrated over central electrode sites, is consistent with the known cortical topography of hand motor imagery, lending physiological plausibility to the result beyond the raw accuracy figure alone.
+
+Several limitations constrain the strength of this result. First, performance was evaluated on a single subject and a relatively small number of trials (45 total), which is reflected in the substantial variability across cross-validation splits (33.3\%--77.8\%); a larger and more stable estimate would require averaging over more subjects and/or more trials. Second, 62\% accuracy, while statistically above chance, falls well short of the performance required for a usable real-time BCI control application, which typically requires accuracies in excess of 70--80\% depending on the application. Third, this pipeline used a simple linear classifier (LDA) and fixed set of CSP components without hyperparameter tuning; more sophisticated approaches (e.g., filter-bank CSP, regularised or deep-learning-based classifiers) are known to improve motor imagery decoding performance in the literature.
+
+\section{Conclusion and Future Work}
+
+This project implemented a complete, correctly validated EEG motor imagery classification pipeline, from raw data acquisition through to classification and evaluation, using established BCI methodology (CSP + LDA). The resulting 62.2\% mean accuracy, together with physiologically plausible CSP spatial patterns, demonstrates that the pipeline is functioning correctly and is extracting real signal rather than noise.
+
+Natural extensions of this work include: (i) evaluating across multiple subjects to obtain a more robust performance estimate and assess inter-subject variability; (ii) comparing LDA against alternative classifiers (e.g.\ SVM, shrinkage LDA, or filter-bank CSP variants); and (iii) extending the pipeline toward online/real-time classification as a first step toward a functional BCI demonstration, potentially paired with a hardware actuator such as the EMG-controlled system developed in parallel as part of this side-project work.
+
+\begin{thebibliography}{9}
+
+\bibitem{pfurtscheller1999}
+G.\ Pfurtscheller and F.\,H.\ Lopes da Silva, ``Event-related EEG/MEG synchronization and desynchronization: basic principles,'' \textit{Clinical Neurophysiology}, vol.\ 110, no.\ 11, pp.\ 1842--1857, 1999.
+
+\bibitem{schalk2004}
+G.\ Schalk, D.\,J.\ McFarland, T.\ Hinterberger, N.\ Birbaumer, and J.\,R.\ Wolpaw, ``BCI2000: A General-Purpose Brain-Computer Interface (BCI) System,'' \textit{IEEE Trans.\ Biomed.\ Eng.}, vol.\ 51, no.\ 6, pp.\ 1034--1043, Jun.\ 2004.
+
+\bibitem{ramoser2000}
+H.\ Ramoser, J.\ Muller-Gerking, and G.\ Pfurtscheller, ``Optimal spatial filtering of single trial EEG during imagined hand movement,'' \textit{IEEE Trans.\ Rehabil.\ Eng.}, vol.\ 8, no.\ 4, pp.\ 441--446, Dec.\ 2000.
+
+\bibitem{gramfort2013}
+A.\ Gramfort et al., ``MEG and EEG data analysis with MNE-Python,'' \textit{Front.\ Neurosci.}, vol.\ 7, no.\ 267, pp.\ 1--13, 2013.
+
+\end{thebibliography}
+
+\end{document}
