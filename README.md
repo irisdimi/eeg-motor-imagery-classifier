@@ -12,14 +12,14 @@ When a person imagines moving their left or right hand (without actually moving)
 
 ## Dataset
 
-[PhysioNet EEG Motor Movement/Imagery Dataset](https://physionet.org/content/eegmmidb/1.0.0/) — 64-channel EEG recordings collected via the BCI2000 system. Downloads automatically on first run via `mne`.
+[PhysioNet EEG Motor Movement/Imagery Dataset](https://physionet.org/content/eegmmidb/1.0.0/) - 64-channel EEG recordings collected via the BCI2000 system. Downloads automatically on first run via `mne`.
 
 ## Pipeline
 
 | Stage | File | What it does |
 |---|---|---|
 | 1. Load data | `src/load_data.py` | Downloads and loads raw EEG for a subject |
-| 2. Preprocess | `src/preprocess.py` | Bandpass filters (8–30 Hz) and epochs the signal |
+| 2. Preprocess | `src/preprocess.py` | Bandpass filters (8-30 Hz) and epochs the signal |
 | 3. Feature extraction | `src/features.py` | Common Spatial Patterns (CSP) |
 | 4. Classify | `src/classify.py` | CSP + LDA pipeline, cross-validated |
 | 5. Run everything | `src/main.py` | Runs the full pipeline end to end |
@@ -71,4 +71,4 @@ eeg-motor-imagery-classifier/
 
 ## Author
 
-Aya Banna - Biomedical Engineering, University of Sydney
+Aya Banna, Second Year Biomedical Engineering (Honours), University of Sydney
