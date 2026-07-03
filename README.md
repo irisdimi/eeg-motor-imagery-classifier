@@ -2,13 +2,13 @@
 
 Classifies imagined **left-hand vs. right-hand** movement from EEG signals, using Common Spatial Patterns (CSP) for feature extraction and Linear Discriminant Analysis (LDA) for classification. Built as a side project to explore brain–computer interface (BCI) signal processing, alongside coursework in neural interfaces and bioelectronics.
 
-📄 **[Read the full report (PDF)](report_ieee/report_ieee.pdf)** — IEEE-format writeup with methodology, results, and discussion.
+📄 **[Read the full report (PDF)](report_ieee/report_ieee.pdf)** - IEEE-format writeup with methodology, results, and discussion.
 
 ## Overview
 
-When a person imagines moving their left or right hand (without actually moving), distinct patterns emerge in EEG recorded over the motor cortex. This project builds a full pipeline — from raw EEG to a trained classifier — to detect that difference automatically.
+When a person imagines moving their left or right hand (without actually moving), distinct patterns emerge in EEG recorded over the motor cortex. This project builds a full pipeline - from raw EEG to a trained classifier - to detect that difference automatically.
 
-**Result:** 62.2% mean classification accuracy across 10-fold cross-validation on a single subject (chance level = 50%), with CSP spatial patterns showing activity concentrated over central electrodes — consistent with known motor cortex topography.
+**Result:** 62.2% mean classification accuracy across 10-fold cross-validation on a single subject (chance level = 50%), with CSP spatial patterns showing activity concentrated over central electrodes - consistent with known motor cortex topography.
 
 ## Dataset
 
@@ -46,7 +46,7 @@ First run downloads EEG data automatically (cached locally afterward).
 ## Results
 
 - **Mean accuracy:** 62.2% (chance level: 50%)
-- **Per-split range:** 33.3% – 77.8% (10 cross-validation splits, single subject)
+- **Per-split range:** 33.3% - 77.8% (10 cross-validation splits, single subject)
 - CSP spatial patterns show strongest activity over central electrodes, consistent with sensorimotor cortex involvement in hand motor imagery
 
 See `figures/` for generated plots, or the [full report](report_ieee/report_ieee.pdf) for detailed discussion and limitations.
@@ -71,4 +71,4 @@ eeg-motor-imagery-classifier/
 
 ## Author
 
-Aya — Biomedical Engineering (Bionics & Bioelectronics), University of Sydney
+Aya Banna - Biomedical Engineering, University of Sydney
